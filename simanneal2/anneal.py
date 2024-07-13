@@ -44,7 +44,7 @@ class Annealer:
     best_energy = None
     start = None
 
-    def __init__(self, initial_state=None, load_state=None):
+    def __init__(self, initial_state=None, load_state=None, momentum: float = 0.05):
         if initial_state is not None:
             self.state = self.copy_state(initial_state)
         elif load_state:
@@ -54,7 +54,7 @@ class Annealer:
                 "No valid values supplied for neither \
             initial_state nor load_state"
             )
-
+        self.momentum = momentum
         signal.signal(signal.SIGINT, self.set_user_exit)
 
     def save_state(self, fname=None):
@@ -207,19 +207,24 @@ class Annealer:
                 # Restore previous state
                 self.state = self.copy_state(prev_state)
                 E = prev_energy
+                accepts = (1-self.momentum) * accepts
+                improves = (1-self.momentum) * improves
             else:
                 # Accept new state and compare to best state
-                accepts += 1
+                accepts = (1-self.momentum) * accepts + self.momentum
                 if dE < 0.0:
-                    improves += 1
+                    improves = (1-self.momentum) * improves + self.momentum
+                else:
+                    improves = (1-self.momentum) * improves
+
                 prev_state = self.copy_state(self.state)
                 prev_energy = E
                 if self.best_energy > E:
                     self.best_state = self.copy_state(self.state)
                     self.best_energy = E
             if self.updates > 1 and (step // updateWavelength) > ((step - 1) // updateWavelength):
-                self.update(step, T, E, accepts / trials, improves / trials)
-                trials = accepts = improves = 0
+                self.update(step, T, E, accepts, improves)
+                # trials = accepts = improves = 0
 
         self.state = self.copy_state(self.best_state)
         if self.save_state_on_exit:

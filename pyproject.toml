@@ -28,7 +28,7 @@ documentation = ""
 repository = ""
 
 [tool.flit.module]
-name = "simmeanneal2"
+name = "simanneal2"
 
 [tool.ruff]
 line-length = 120
