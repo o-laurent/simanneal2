@@ -87,7 +87,6 @@ class Annealer:
         self.Tmax = schedule["tmax"]
         self.Tmin = schedule["tmin"]
         self.steps = int(schedule["steps"])
-        self.updates = int(schedule["updates"])
 
     def copy_state(self, state):
         """Returns an exact copy of the provided state
@@ -104,10 +103,7 @@ class Annealer:
         elif self.copy_strategy == "method":
             return state.copy()
         else:
-            raise RuntimeError(
-                "No implementation found for "
-                + f'the self.copy_strategy "{self.copy_strategy}"'
-            )
+            raise RuntimeError("No implementation found for " + f'the self.copy_strategy "{self.copy_strategy}"')
 
     def update(self, *args, **kwargs):
         """Wrapper for internal update.
@@ -188,9 +184,7 @@ class Annealer:
         self.best_state = self.copy_state(self.state)
         self.best_energy = E
         trials = accepts = improves = 0
-        if self.updates > 0:
-            updateWavelength = self.steps / self.updates
-            self.update(step, T, E, None, None)
+        self.update(step, T, E, None, None)
 
         # Attempt moves to new states
         while step < self.steps and not self.user_exit:
@@ -207,24 +201,22 @@ class Annealer:
                 # Restore previous state
                 self.state = self.copy_state(prev_state)
                 E = prev_energy
-                accepts = (1-self.momentum) * accepts
-                improves = (1-self.momentum) * improves
+                accepts = (1 - self.momentum) * accepts
+                improves = (1 - self.momentum) * improves
             else:
                 # Accept new state and compare to best state
-                accepts = (1-self.momentum) * accepts + self.momentum
+                accepts = (1 - self.momentum) * accepts + self.momentum
                 if dE < 0.0:
-                    improves = (1-self.momentum) * improves + self.momentum
+                    improves = (1 - self.momentum) * improves + self.momentum
                 else:
-                    improves = (1-self.momentum) * improves
+                    improves = (1 - self.momentum) * improves
 
                 prev_state = self.copy_state(self.state)
                 prev_energy = E
                 if self.best_energy > E:
                     self.best_state = self.copy_state(self.state)
                     self.best_energy = E
-            if self.updates > 1 and (step // updateWavelength) > ((step - 1) // updateWavelength):
-                self.update(step, T, E, accepts, improves)
-                # trials = accepts = improves = 0
+            self.update(step, T, E, accepts, improves)
 
         self.state = self.copy_state(self.best_state)
         if self.save_state_on_exit:
@@ -310,4 +302,4 @@ class Annealer:
         duration = round_figures(int(60.0 * minutes * step / elapsed), 2)
 
         # Don't perform anneal, just return params
-        return {"tmax": Tmax, "tmin": Tmin, "steps": duration, "updates": self.updates}
+        return {"tmax": Tmax, "tmin": Tmin, "steps": duration}

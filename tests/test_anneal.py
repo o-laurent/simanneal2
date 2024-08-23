@@ -3,7 +3,6 @@ import sys
 import time
 
 from helper import cities, distance_matrix
-
 from simanneal import Annealer
 
 if sys.version_info.major >= 3:  # pragma: no cover
@@ -18,9 +17,7 @@ class TravellingSalesmanProblem(Annealer):
     # pass extra data (the distance matrix) into the constructor
     def __init__(self, distance_matrix, initial_state=None, load_state=None):
         self.distance_matrix = distance_matrix
-        super().__init__(
-            initial_state=initial_state, load_state=load_state
-        )
+        super().__init__(initial_state=initial_state, load_state=load_state)
 
     def move(self):
         """Swaps two cities in the route."""
@@ -119,21 +116,12 @@ def test_default_update_formatting():
     tsp.default_update(0, 1, 2, 3, 4)
     output = sys.stderr.getvalue().split("\n")
     assert len(output) == 3
-    assert (
-        output[1]
-        == " Temperature        Energy    Accept   Improve     Elapsed   Remaining"
-    )
-    assert (
-        output[2]
-        == "\r     1.00000          2.00                         0:00:08            "
-    )
+    assert output[1] == " Temperature        Energy    Accept   Improve     Elapsed   Remaining"
+    assert output[2] == "\r     1.00000          2.00                         0:00:08            "
 
     # when step>0, default_update should use \r to overwrite the previous data
     sys.stderr = StringIO()
     tsp.default_update(10, 1, 2, 3, 4)
     output = sys.stderr.getvalue().split("\n")
     assert len(output) == 1
-    assert (
-        output[0]
-        == "\r     1.00000          2.00   300.00%   400.00%     0:00:08    11:06:32"
-    )
+    assert output[0] == "\r     1.00000          2.00   300.00%   400.00%     0:00:08    11:06:32"
